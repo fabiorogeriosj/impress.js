@@ -361,7 +361,62 @@ if ("ontouchstart" in document.documentElement) {
     
 -->
 <script src="js/impress.js"></script>
-<script>impress().init();</script>
+<script src="js/leap.min.js"></script>
+<script>
+
+impress().init();
+
+var controller = new Leap.Controller({
+  host: '127.0.0.1',
+  port: 6437,
+  enableGestures: true,
+  frameEventName: 'animationFrame'
+});
+controller.on('connect', function() {
+  console.log("Successfully connected.");
+});
+
+controller.on('deviceConnected', function() {
+  console.log("A Leap device has been connected.");
+});
+
+controller.on('deviceDisconnected', function() {
+  console.log("A Leap device has been disconnected.");
+});
+
+controller.on('frame', function(animationFrame) {
+    if(animationFrame.hands.length > 0){
+        //console.log(animationFrame.hands);
+        calcMove = animationFrame.hands[0]._translation;
+        
+    } else {
+        callCommand();
+    }
+});
+
+controller.connect();
+
+var calcMove = [];
+
+var callCommand = function (){
+    if(calcMove.length){
+        //console.log('calcMove:', calcMove);
+        var total = 0;
+        calcMove.forEach(function (e, i){
+            total += e;
+        })
+        if(total > 20){
+            console.log('totalToNext:', total);
+            impress().next();
+        } else if(total < -1){
+            console.log('totalToPrev:', total);
+            impress().prev();
+        }
+        calcMove = [];
+    }
+}
+
+</script>
 
 <!--
     
